@@ -1,0 +1,73 @@
+version: 1
+kind: application
+meta:
+  name: 'jupyter-notebook:1'
+  brief: Jupyter notebook application
+  source:
+    dir: .
+requires:
+  - jupyterhub
+components:
+  - name: github-repository
+    source:
+      dir: components/github-repository
+  - name: buildbox
+    source:
+      dir: components/buildbox
+  - name: ecr
+    source:
+      dir: components/ecr
+parameters:
+  - name: application.description
+    value: >-
+      Jupyter notebook environment that requires no setup and runs entirely in
+      the cloud with JupyterHub
+  - name: application.image
+    value: jupyter/minimal-notebook
+  - name: application.name
+    value: jupyter-2
+  - name: application.name.internal
+    value: '${application.name}'
+    env: APPLICATION
+  - name: application.state.file
+    fromEnv: APP_STATE_FILE
+  - name: cloud.region
+  - name: component.ecr.name
+    value: 'jupyter-2.${dns.domain}'
+  - name: component.git.remote
+  - name: component.github.repository.description
+    value: |
+      Java microservice with Spring Boot
+  - name: component.github.repository.name
+    value: jupyter-2
+  - name: component.github.repository.organization
+    value: asibot
+  - name: component.github.token
+    fromEnv: COMPONENT_GITHUB_TOKEN
+  - name: component.github.webhook.events.json
+    value: '["push"]'
+  - name: component.github.webhook.name
+    value: github
+  - name: component.ingress.protocol
+  - name: component.jupyterhub.url
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: terraform.bucket.name
+  - name: terraform.bucket.region
+outputs:
+  - name: application.git.remote
+    value: '${component.git.remote}'
+  - name: application.notebook.token
+    fromTfVar: token
+  - name: application.url
+    value: >-
+      ${component.jupyterhub.url}/user/${application.name}/?token=${application.notebook.token}
+lifecycle:
+  order:
+    - ecr
+    - github-repository
+    - buildbox
+  mandatory:
+    - ecr
+    - github-repository
+    - buildbox
